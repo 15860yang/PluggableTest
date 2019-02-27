@@ -14,6 +14,10 @@ public class Main3Activity extends AppCompatActivity {
     }
 
     public static void startActivity(Activity activity){
-        activity.startActivity(new Intent(activity,Main3Activity.class));
+        Intent intent = new Intent(activity,Main3Activity.class);
+
+        intent.putExtra(Hook.PLUG_ACTIVITY,true);
+
+        activity.startActivity(intent);
     }
 }

@@ -28,6 +28,11 @@ import java.lang.reflect.Proxy;
 public class Hook {
 
     public static final String TAG = Hook.class.getSimpleName();
+    public static final String PLUG_ACTIVITY = "plugActivity";
+    public static final String REAL_ACTIVITY = "activity_Name";
+    public static final Class TARGET_ACTIVITY = ProxyActivity.class;
+    private static final int LAUNCH_ACTIVITY = 100;
+
     private static Context mContext;
 
     @SuppressLint("PrivateApi")
@@ -85,7 +90,7 @@ public class Hook {
 
         @Override
         public boolean handleMessage(Message msg) {
-            if (msg.what == 100) {
+            if (msg.what == LAUNCH_ACTIVITY) {
                 Object obj = msg.obj;
                 try {
                     final Field intent = obj.getClass().getDeclaredField("intent");
@@ -163,13 +168,19 @@ public class Hook {
             Log.e(TAG, "InstrumentationProxy:mexecStartActivityMethod =  " + mexecStartActivityMethod.getName()+
                     ",mNewActivityMethod = " + mNewActivityMethod.getName());
 
-
             mObject = object;
         }
 
         public ActivityResult execStartActivity(Context who, IBinder contextThread, IBinder token, Activity target,
                 Intent intent, int requestCode, Bundle options)throws Exception{
             //在这里，就可以做我们的替换工作了
+
+            if(intent.getBooleanExtra(PLUG_ACTIVITY,false)){
+                ComponentName target_activity = new ComponentName(mContext,TARGET_ACTIVITY);
+                ComponentName real_activity = intent.getComponent();
+                intent.setComponent(target_activity);
+                intent.putExtra(REAL_ACTIVITY,real_activity);
+            }
             return (ActivityResult) mexecStartActivityMethod.invoke(mObject,who, contextThread, token, target,
                     intent,  requestCode, options);
         }
@@ -177,7 +188,12 @@ public class Hook {
         @Override
         public Activity newActivity(ClassLoader cl, String className, Intent intent)throws IllegalAccessException, IllegalArgumentException{
             //在这里，需要把目标Activity恢复过来
+            Log.e(TAG, "newActivity:className =  "+intent.getComponent().getClassName() );
             try {
+                ComponentName real_activity = intent.getParcelableExtra(REAL_ACTIVITY);
+                if(real_activity!=null){
+                    className = real_activity.getClassName();
+                }
                 return (Activity) mNewActivityMethod.invoke(mObject,cl,className,intent);
             } catch (InvocationTargetException e) {
                 e.printStackTrace();
