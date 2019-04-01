@@ -16,7 +16,7 @@ public class MyApplication extends Application {
     public void onCreate() {
         super.onCreate();
         try {
-            Hook.hookInstrumentation(this);
+//            Hook.hookInstrumentation(this);
         } catch (Exception e) {
             e.printStackTrace();
         }

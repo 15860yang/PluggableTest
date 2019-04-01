@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Plugin</string>
+    <string name="myplugin_helloWorld">你好，插件化</string>
+</resources>
